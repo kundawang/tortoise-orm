@@ -205,6 +205,26 @@ async def test_minrelation():
 
 
 @pytest.mark.asyncio
+async def test_fk_no_action():
+    await _reset_tortoise()
+    try:
+        sqls = await _init_for_sqlite("tests.schema.models_fk_no_action")
+        sql = _get_sql(sqls, '"book"')
+        assert '"author_id" INT NOT NULL REFERENCES "author" ("id") ON DELETE NO ACTION' in sql
+
+        sql = _get_sql(sqls, '"profile"')
+        assert (
+            '"author_id" INT NOT NULL UNIQUE REFERENCES "author" ("id") ON DELETE NO ACTION' in sql
+        )
+
+        sql = _get_sql(sqls, '"article_tag"')
+        assert '"article_id" INT NOT NULL REFERENCES "article" ("id") ON DELETE NO ACTION' in sql
+        assert '"tag_id" INT NOT NULL REFERENCES "tag" ("id") ON DELETE NO ACTION' in sql
+    finally:
+        await _teardown_tortoise()
+
+
+@pytest.mark.asyncio
 async def test_safe_generation():
     """Assert that the IF NOT EXISTS clause is included when safely generating schema."""
     await _reset_tortoise()
@@ -646,6 +666,24 @@ async def test_mysql_minrelation():
 
 
 @pytest.mark.asyncio
+async def test_mysql_fk_no_action():
+    await _reset_tortoise()
+    try:
+        sqls = await _init_for_mysql("tests.schema.models_fk_no_action")
+        sql = _get_sql(sqls, "`book`")
+        assert "FOREIGN KEY (`author_id`) REFERENCES `author` (`id`) ON DELETE NO ACTION" in sql
+
+        sql = _get_sql(sqls, "`profile`")
+        assert "FOREIGN KEY (`author_id`) REFERENCES `author` (`id`) ON DELETE NO ACTION" in sql
+
+        sql = _get_sql(sqls, "`article_tag`")
+        assert "FOREIGN KEY (`article_id`) REFERENCES `article` (`id`) ON DELETE NO ACTION" in sql
+        assert "FOREIGN KEY (`tag_id`) REFERENCES `tag` (`id`) ON DELETE NO ACTION" in sql
+    finally:
+        await _teardown_tortoise()
+
+
+@pytest.mark.asyncio
 async def test_mysql_table_and_row_comment_generation():
     await _reset_tortoise()
     try:
@@ -1059,6 +1097,26 @@ async def test_asyncpg_noid():
         sql = _get_sql(sqls, '"noid"')
         assert '"name" VARCHAR(255)' in sql
         assert '"id" SERIAL NOT NULL PRIMARY KEY' in sql
+    finally:
+        await _teardown_tortoise()
+
+
+@pytest.mark.asyncio
+async def test_asyncpg_fk_no_action():
+    await _reset_tortoise()
+    try:
+        sqls = await _init_for_asyncpg("tests.schema.models_fk_no_action")
+        sql = _get_sql(sqls, '"book"')
+        assert '"author_id" INT NOT NULL REFERENCES "author" ("id") ON DELETE NO ACTION' in sql
+
+        sql = _get_sql(sqls, '"profile"')
+        assert (
+            '"author_id" INT NOT NULL UNIQUE REFERENCES "author" ("id") ON DELETE NO ACTION' in sql
+        )
+
+        sql = _get_sql(sqls, '"article_tag"')
+        assert '"article_id" INT NOT NULL REFERENCES "article" ("id") ON DELETE NO ACTION' in sql
+        assert '"tag_id" INT NOT NULL REFERENCES "tag" ("id") ON DELETE NO ACTION' in sql
     finally:
         await _teardown_tortoise()
 
